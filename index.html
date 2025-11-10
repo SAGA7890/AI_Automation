@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Note/PDF Summarizer</title>
+  <link rel="stylesheet" href="/static/style.css"/>
+</head>
+<body>
+  <div class="container">
+    <h1>AI Note/PDF Summarizer</h1>
+    <p class="sub">Upload a PDF, DOCX, or TXT and get a clean summary. Uses OpenAI if available, else a local model.</p>
+
+    <form id="uploadForm">
+      <input type="file" id="fileInput" name="file" accept=".pdf,.docx,.txt" required/>
+      <button type="submit">Summarize</button>
+    </form>
+
+    <div id="status"></div>
+
+    <h2>Summary</h2>
+    <pre id="output"></pre>
+  </div>
+
+  <script>
+    const form = document.getElementById('uploadForm');
+    const output = document.getElementById('output');
+    const statusBox = document.getElementById('status');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      output.textContent = '';
+      statusBox.textContent = 'Summarizing... this may take a moment for large files.';
+      const formData = new FormData();
+      const file = document.getElementById('fileInput').files[0];
+      formData.append('file', file);
+      try {
+        const resp = await fetch('/summarize', { method: 'POST', body: formData });
+        const data = await resp.json();
+        if (data.error) {
+          statusBox.textContent = 'Error: ' + data.error;
+        } else {
+          statusBox.textContent = 'Done!';
+          output.textContent = data.summary;
+        }
+      } catch (err) {
+        statusBox.textContent = 'Network error. ' + err.message;
+      }
+    });
+  </script>
+</body>
+</html>
